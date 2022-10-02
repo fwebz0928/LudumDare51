@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -9,7 +10,10 @@ public class GameController : MonoBehaviour
 {
     public static GameController instance;
     [SerializeField] private WeaponBase[] weaponsDB;
-    [SerializeField] private Enemy enemyGo;
+    [SerializeField] private List<EnemySpawnData> enemySpawnData = new List<EnemySpawnData>();
+    [SerializeField] private List<Enemy> enemies = new List<Enemy>();
+    [SerializeField] private float spawnRate = 10.0f;
+    [SerializeField] private int spawnAmount = 4;
     [HideInInspector] public float timerAmount = 10.0f;
 
     private WeaponBase _lastWeapon;
@@ -29,6 +33,8 @@ public class GameController : MonoBehaviour
         ChooseNewWeapon();
         StartCoroutine(ChangeWeapon());
 
+        
+        //Enemy Spawning
         _enemyPool = new ObjectPool<Enemy>
         (
             CreatePoolObject,
@@ -39,24 +45,34 @@ public class GameController : MonoBehaviour
             10,
             1000000
         );
+
+        StartCoroutine(SpawnEnemy());
     }
     private Enemy CreatePoolObject()
     {
-        var enemy = Instantiate(enemyGo, transform.position, quaternion.identity);
-        this.gameObject.SetActive(false);
-        return null;
+        var enemy = Instantiate(enemies[Random.Range(0, enemies.Count)], transform.position, quaternion.identity);
+        enemy.gameObject.SetActive(false);
+        return enemy;
     }
     private void OnTakeFromPool(Enemy obj)
     {
-        throw new NotImplementedException();
+        obj.gameObject.SetActive(true);
+        obj.transform.position = GetRandomPointNearPlayer(14.0f, 2.0f);
     }
-    private void OnReturnToPool(Enemy obj)
-    {
-        throw new NotImplementedException();
-    }
+    private void ReturnObjectToPool(Enemy obj) => _enemyPool.Release(obj);
+    private void OnReturnToPool(Enemy obj) => obj.gameObject.SetActive(false);
     private void OnDestroyObject(Enemy obj)
     {
-        throw new NotImplementedException();
+    }
+
+    private IEnumerator SpawnEnemy()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(spawnRate);
+            for (int i = 0; i < spawnAmount; i++)
+                _enemyPool.Get();
+        }
     }
 
     private void Update()
@@ -87,4 +103,26 @@ public class GameController : MonoBehaviour
             ChooseNewWeapon();
         }
     }
+
+
+    public Vector3 GetRandomPointNearPlayer(float range,float minDistance)
+    {
+        var randomPos = (Vector3)Random.insideUnitCircle * range;
+        var distance = Vector3.Distance(randomPos, PlayerController.Instance.gameObject.transform.position);
+        while (distance < minDistance)
+        {
+            randomPos = (Vector3)Random.insideUnitCircle * range;
+            distance = Vector3.Distance(randomPos, PlayerController.Instance.gameObject.transform.position);
+        }
+        return randomPos += PlayerController.Instance.gameObject.transform.position;
+    }
+    
+    
+}
+
+[Serializable]
+class EnemySpawnData
+{
+    public Enemy enemy;
+    public int spawnMinute;
 }

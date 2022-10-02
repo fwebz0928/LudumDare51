@@ -30,7 +30,7 @@ public class WeaponBase : MonoBehaviour
     }
     private Projectile CreatePoolObject()
     {
-        var instance = Instantiate(projectile, Vector3.zero, Quaternion.identity);
+        var instance = Instantiate(projectile, new Vector3(0.0f,100000.0f,0.0f), Quaternion.identity);
         instance.Disable += ReturnObjectToPool;
         instance.gameObject.SetActive(false);
         instance.SetProjectileData(damage, lifeTime);

@@ -6,11 +6,15 @@ using UnityEngine.UI;
 public class MainUiController : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI countdownText;
-    [SerializeField] private Image healthFillImage;
+    [SerializeField] private Slider healthFillImage;
 
     private void Start()
     {
         GameController.instance.UpdateCountdownTimerDel += UpdateCountdownTimer;
+
+        // healthFillImage.maxValue = PlayerController.Instance.maxhealth;
+        healthFillImage.value = PlayerController.Instance.GetHealthAmount();
+        PlayerController.Instance.UpdateHealthBarDel += UpdateHealthBar;
     }
     private void UpdateCountdownTimer(float time)
     {
@@ -19,8 +23,6 @@ public class MainUiController : MonoBehaviour
 
     private void UpdateHealthBar(float amount)
     {
-        healthFillImage.fillAmount = amount;
+        healthFillImage.value = amount;
     }
-    
-    
 }

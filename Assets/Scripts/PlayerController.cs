@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
     //Movement
     [SerializeField] private Rigidbody2D rb2D;
     [SerializeField] private float movementSpeed;
-    [SerializeField] private float maxhealth;
+    [SerializeField] public float maxhealth;
     public WeaponBase currentWeapon;
     [SerializeField] private Transform weaponPos;
     [SerializeField] private Transform weaponPivot;
@@ -26,7 +26,8 @@ public class PlayerController : MonoBehaviour
     }
     private void Start()
     {
-        UpdateHealthBarDel?.Invoke(_currentHealth / maxhealth);
+        _currentHealth = maxhealth;
+        UpdateHealthBarDel?.Invoke(GetHealthAmount());
     }
 
     private void Update()
@@ -56,8 +57,8 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(float damageAmount)
     {
-        _currentHealth = Mathf.Clamp(_currentHealth - damageAmount, 0.0f, maxhealth);
-        UpdateHealthBarDel?.Invoke(_currentHealth / maxhealth);
+        _currentHealth = Mathf.Clamp(_currentHealth -= damageAmount, 0.0f, maxhealth);
+        UpdateHealthBarDel?.Invoke(GetHealthAmount());
         if (_currentHealth <= 0.0f)
         {
             //Do Death things
@@ -88,5 +89,10 @@ public class PlayerController : MonoBehaviour
         else if (weaponPivot.transform.localEulerAngles.z < 270.0f || weaponPivot.transform.localEulerAngles.z > 90.0f) // if angle is negative (Left Side of Player)
             if (currentWeapon)
                 currentWeapon.transform.localScale = new Vector3(1.0f, -1.0f, 1.0f);
+    }
+
+    public float GetHealthAmount()
+    {
+        return _currentHealth / maxhealth;
     }
 }

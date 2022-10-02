@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    [SerializeField] private Rigidbody2D rb2d;
-    [SerializeField] private TrailRenderer trail;
-    private float _damage;
-    private float _lifeTime;
+    [SerializeField] protected Rigidbody2D rb2d;
+    [SerializeField] protected TrailRenderer trail;
+    protected float _damage;
+    protected float _lifeTime;
 
     public delegate void OnDisableCallback(Projectile instance);
     public OnDisableCallback Disable;
@@ -15,6 +15,12 @@ public class Projectile : MonoBehaviour
     {
         _damage = damage;
         _lifeTime = lifeTime;
+    }
+    public void SetProjectileData(float damage, float lifeTime, Vector2 fireDir)
+    {
+        _damage = damage;
+        _lifeTime = lifeTime;
+        rb2d.velocity = fireDir;
     }
 
     public void StartLifeTimeCountdown() => Invoke(nameof(ResetProjectile), _lifeTime);
@@ -26,9 +32,10 @@ public class Projectile : MonoBehaviour
         Disable?.Invoke(this);
     }
 
-    private void OnTriggerEnter2D(Collider2D col)
+    protected virtual void OnTriggerEnter2D(Collider2D col)
     {
         if (!col.gameObject.CompareTag("Enemy")) return;
-        
+        col.gameObject.GetComponent<Enemy>().TakeDamage(_damage);
+        ResetProjectile();
     }
 }
